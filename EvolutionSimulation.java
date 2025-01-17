@@ -2,7 +2,30 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Random;
 import java.util.List;
+import java.util.ArrayList;
 
+class EvolutionaryMaths {
+    // public EvolutionaryMaths() {}  // Constructor
+
+    public static ArrayList<Double> normalizeProbas(ArrayList<Double> probas) {
+        // Create a copy of the probas list
+        ArrayList<Double> normalizedProbas = new ArrayList<Double>(probas);
+        
+        // Calculate the sum of the probabilities
+        double sum = 0;
+        for (double proba : probas) {
+            sum += proba;
+        }
+        
+        // Normalize each probability and store it in normalizedProbas
+        for (int i = 0; i < probas.size(); i++) {
+            double normalized = probas.get(i) / sum;
+            normalizedProbas.set(i, normalized);
+        }
+        
+        return normalizedProbas;
+    }
+}
 
 class Individual {
     private int type;
