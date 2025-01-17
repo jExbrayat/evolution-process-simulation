@@ -2,28 +2,77 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Random;
 import java.util.List;
-import java.util.ArrayList;
+import java.util.Random;
 
 class EvolutionaryMaths {
-    // public EvolutionaryMaths() {}  // Constructor
-
-    public static ArrayList<Double> normalizeProbas(ArrayList<Double> probas) {
-        // Create a copy of the probas list
-        ArrayList<Double> normalizedProbas = new ArrayList<Double>(probas);
+    
+    // Constructor
+    public EvolutionaryMaths(int genotype_dimensionality, double fitness_landscape_kurtosis) {
+        this.genotype_dimensionality = genotype_dimensionality;
+        this.fitness_landscape_kurtosis = fitness_landscape_kurtosis;
+        this.optimum_genotype = new double[genotype_dimensionality];
         
-        // Calculate the sum of the probabilities
+        // Initialize optimum_genotype with 0.5 values
+        for (int i = 0; i < genotype_dimensionality; i++) {
+            optimum_genotype[i] = 0.5;
+        }
+    }
+
+    // Private class members
+    private int genotype_dimensionality;
+    private double fitness_landscape_kurtosis;
+    private double[] optimum_genotype;
+
+    // Init Random object for generating gaussian variables
+    public static Random rand = new Random();
+
+    /**
+     * @brief Normalize elements of input vector such that sum(normalized_probas) = 1
+     * @param probas Vector of probabilities
+     * @return
+     */
+    public static double[] normalizeProbas(double[] probas) {
+        double[] normalizedProbas = new double[probas.length];
+        
         double sum = 0;
         for (double proba : probas) {
             sum += proba;
         }
         
-        // Normalize each probability and store it in normalizedProbas
-        for (int i = 0; i < probas.size(); i++) {
-            double normalized = probas.get(i) / sum;
-            normalizedProbas.set(i, normalized);
+        for (int i = 0; i < probas.length; i++) {
+            double normalized = probas[i] / sum;
+            normalizedProbas[i] = normalized;
         }
         
         return normalizedProbas;
+    }
+
+    /**
+     * @brief Compute fitness for a individual's genotype
+     * @return Fitness score
+     */
+    public double Fitness(double[] genotype) {
+        double euclidian_dist = 0;
+        for (int i = 0; i < genotype.length; i++) {
+            euclidian_dist += Math.pow(genotype[i] - optimum_genotype[i], 2);
+        }
+        euclidian_dist = Math.sqrt(euclidian_dist);
+        
+        double fitness = Math.exp(- fitness_landscape_kurtosis * Math.pow(euclidian_dist, 2));
+
+        return fitness;
+    }
+
+    /**
+     * @brief Mutate an individual's genotype
+     * @param genotype
+     * @return Mutated genotype
+     */
+    public static double[] mutate(double[] genotype, double mutation_rate) {
+        for (int i = 0; i < genotype.length; i++) {
+            genotype[i] += rand.nextGaussian() * mutation_rate;
+        }
+        return genotype;
     }
 }
 
