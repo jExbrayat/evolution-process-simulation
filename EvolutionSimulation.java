@@ -23,9 +23,6 @@ class EvolutionaryMaths {
     private double fitness_landscape_kurtosis;
     private double[] optimum_genotype;
 
-    // Init Random object for generating gaussian variables
-    public static Random rand = new Random();
-
     /**
      * @brief Normalize elements of input vector such that sum(normalized_probas) = 1
      * @param probas Vector of probabilities
@@ -68,11 +65,25 @@ class EvolutionaryMaths {
      * @param genotype
      * @return Mutated genotype
      */
-    public double[] mutate(double[] genotype, double mutation_rate) {
+    public static double[] mutate(double[] genotype, double mutation_rate) {
+        // Init Random object for generating gaussian variables
+        Random rand = new Random();
         for (int i = 0; i < genotype.length; i++) {
             genotype[i] += rand.nextGaussian() * mutation_rate;
         }
         return genotype;
+    }
+
+    public static double computeDyingProbability (int total_nb_individuals) {
+        return 1 / Math.pow(total_nb_individuals, 2);
+    }
+
+    public static double computeReproductionProbability (double fitness, double age, double alpha, double beta, double stochasticity_std) {
+        // Init Random object for generating gaussian variables
+        Random rand = new Random();
+        double epsilon = rand.nextGaussian(); 
+        double reprod_proba = alpha * fitness + beta * age + stochasticity_std * epsilon;
+        return reprod_proba;
     }
 }
 
