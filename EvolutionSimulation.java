@@ -68,7 +68,7 @@ class EvolutionaryMaths {
      * @param genotype
      * @return Mutated genotype
      */
-    public static double[] mutate(double[] genotype, double mutation_rate) {
+    public double[] mutate(double[] genotype, double mutation_rate) {
         for (int i = 0; i < genotype.length; i++) {
             genotype[i] += rand.nextGaussian() * mutation_rate;
         }
