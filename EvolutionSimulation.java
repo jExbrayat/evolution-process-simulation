@@ -75,10 +75,27 @@ class EvolutionaryMaths {
         return genotype;
     }
 
+    /**
+     * 
+     * @param total_nb_individuals
+     * @return The dying probability of an individual, which is the same for everyone
+     * 
+     */
     public static double computeDyingProbability(int total_nb_individuals) {
         return 1 / Math.pow(total_nb_individuals, 2);
     }
 
+    /**
+     * Compute the reproduction probability of an individual given by:
+     * alpha * fitness + beta * age + randn(0, 1) * epsilon
+     * @param fitness Fitness score of the individual
+     * @param age Float, age of the individual 
+     * @param alpha 
+     * @param beta
+     * @param stochasticity_std
+     * @return Non normalized reproduction probability
+     * 
+     */
     public static double computeReproductionProbability(double fitness, double age, double alpha, double beta,
             double stochasticity_std) {
         // Init Random object for generating gaussian variables
