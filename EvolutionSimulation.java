@@ -5,13 +5,13 @@ import java.util.List;
 import java.util.Random;
 
 class EvolutionaryMaths {
-    
+
     // Constructor
     public EvolutionaryMaths(int genotype_dimensionality, double fitness_landscape_kurtosis) {
         this.genotype_dimensionality = genotype_dimensionality;
         this.fitness_landscape_kurtosis = fitness_landscape_kurtosis;
         this.optimum_genotype = new double[genotype_dimensionality];
-        
+
         // Initialize optimum_genotype with 0.5 values
         for (int i = 0; i < genotype_dimensionality; i++) {
             optimum_genotype[i] = 0.5;
@@ -24,23 +24,24 @@ class EvolutionaryMaths {
     private double[] optimum_genotype;
 
     /**
-     * @brief Normalize elements of input vector such that sum(normalized_probas) = 1
+     * @brief Normalize elements of input vector such that sum(normalized_probas) =
+     *        1
      * @param probas Vector of probabilities
      * @return
      */
     public static double[] normalizeProbas(double[] probas) {
         double[] normalizedProbas = new double[probas.length];
-        
+
         double sum = 0;
         for (double proba : probas) {
             sum += proba;
         }
-        
+
         for (int i = 0; i < probas.length; i++) {
             double normalized = probas[i] / sum;
             normalizedProbas[i] = normalized;
         }
-        
+
         return normalizedProbas;
     }
 
@@ -54,8 +55,8 @@ class EvolutionaryMaths {
             euclidian_dist += Math.pow(genotype[i] - optimum_genotype[i], 2);
         }
         euclidian_dist = Math.sqrt(euclidian_dist);
-        
-        double fitness = Math.exp(- fitness_landscape_kurtosis * Math.pow(euclidian_dist, 2));
+
+        double fitness = Math.exp(-fitness_landscape_kurtosis * Math.pow(euclidian_dist, 2));
 
         return fitness;
     }
@@ -74,14 +75,15 @@ class EvolutionaryMaths {
         return genotype;
     }
 
-    public static double computeDyingProbability (int total_nb_individuals) {
+    public static double computeDyingProbability(int total_nb_individuals) {
         return 1 / Math.pow(total_nb_individuals, 2);
     }
 
-    public static double computeReproductionProbability (double fitness, double age, double alpha, double beta, double stochasticity_std) {
+    public static double computeReproductionProbability(double fitness, double age, double alpha, double beta,
+            double stochasticity_std) {
         // Init Random object for generating gaussian variables
         Random rand = new Random();
-        double epsilon = rand.nextGaussian(); 
+        double epsilon = rand.nextGaussian();
         double reprod_proba = alpha * fitness + beta * age + stochasticity_std * epsilon;
         return reprod_proba;
     }
@@ -112,7 +114,6 @@ class Individual {
         return new Color(colorValue, colorValue, 255 - colorValue);
     }
 }
-
 
 class Population extends JPanel {
     private final int gridSize; // Number of cells in one dimension
@@ -160,17 +161,16 @@ class Population extends JPanel {
     }
 }
 
-// 
+//
 public class EvolutionSimulation {
     public static void main(String[] args) {
         int gridSize = 50; // Fixed number of cells in one dimension
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int cellSize = Math.min(screenSize.width, screenSize.height) / gridSize; // Calculate cell size to fit the screen
+        int cellSize = Math.min(screenSize.width, screenSize.height) / gridSize; // Calculate cell size to fit the
+                                                                                 // screen
 
         JFrame frame = new JFrame("Evolution Simulation");
         Population pop = new Population(gridSize, cellSize, 3);
-
-
 
         frame.add(pop);
         frame.pack(); // Automatically sizes the frame to fit the panel
