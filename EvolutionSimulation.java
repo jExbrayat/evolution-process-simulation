@@ -84,7 +84,7 @@ class EvolutionaryMaths {
         // Init Random object for generating gaussian variables
         Random rand = new Random();
         double epsilon = rand.nextGaussian();
-        double reprod_proba = alpha * fitness + beta * age + stochasticity_std * epsilon;
+        double reprod_proba = Math.exp(alpha * (0.5+fitness)*(0.5+fitness)*(0.5+fitness)*(0.5+fitness)*(0.5+fitness)*(0.5+fitness)) + beta * age + stochasticity_std * epsilon;
         return reprod_proba;
     }
 
@@ -110,6 +110,7 @@ class Individual {
     private double[] phenotype;
     private double fitness;
     private Color color;
+    private double mu;
 
     public Individual(int traitCount, int type) {
         this.phenotype = new double[traitCount];
@@ -117,14 +118,16 @@ class Individual {
 
         if(type == 0){
             this.color = new Color(0, 0, 147);
+            this.mu = 0;
             for(int i = 0; i < traitCount;i++){
-                this.phenotype[i] = 0.3;
+                this.phenotype[i] = 0;
             }
         }
         if(type == 1){
             this.color = new Color(147, 147, 0);
+            this.mu = 0;
             for(int i = 0; i < traitCount;i++){
-                this.phenotype[i] = 0.3;
+                this.phenotype[i] = 0.5;
             }
         }
     }
@@ -161,7 +164,16 @@ class Individual {
     public void setFitness(double new_fit) {
         this.fitness = new_fit;
     }
+
+    public double getMu() {
+        return this.mu;
+    }
+
+    public void setMu(double new_mu) {
+        this.mu = new_mu;
+    }
 }
+
 
 class Population extends JPanel {
     private final int gridSize; // Number of cells in one dimension
@@ -212,8 +224,13 @@ class Population extends JPanel {
         // Mutation aléatoire pour tout le monde.
         for (int i = 0; i < gridSize; i++) {
             for (int j = 0; j < gridSize; j++) {
-                grid[i][j].setPhenotype(this.math.mutate(grid[i][j].getPhenotype(),0.02));
+                grid[i][j].setPhenotype(this.math.mutate(grid[i][j].getPhenotype(),grid[i][j].getMu()));
                 grid[i][j].setFitness(this.math.Fitness(grid[i][j].getPhenotype()));
+                System.out.println(grid[i][j].getType());
+                System.out.println(grid[i][j].getPhenotype());
+                System.out.println(grid[i][j].getFitness());
+
+
             }
         }
         // Calcul des probas
@@ -222,7 +239,7 @@ class Population extends JPanel {
         double[] proba_death = new double[dim_vector];
         for (int i = 0; i < gridSize; i++) {
             for (int j = 0; j < gridSize; j++) {
-                proba_repro[i*gridSize + j] = math.computeReproductionProbability(grid[i][j].getFitness(), 1, 1, 1,0.0001);
+                proba_repro[i*gridSize + j] = math.computeReproductionProbability(grid[i][j].getFitness(), 50, 1, 0,0);
                 proba_death[i*gridSize + j] = math.computeDyingProbability(dim_vector);
             }
         }
@@ -242,13 +259,13 @@ class Population extends JPanel {
         int i_born = born / gridSize;
         int j_born = born % gridSize;
 
-        System.out.println(i_death);
-        System.out.println(j_death);
+        // System.out.println(i_death);
+        // System.out.println(j_death);
 
         grid[i_death][j_death].setColor(grid[i_born][j_born].getColor());
         grid[i_death][j_death].setPhenotype(grid[i_born][j_born].getPhenotype());
         grid[i_death][j_death].setType(grid[i_born][j_born].getType()); 
-
+        grid[i_death][j_death].setMu(grid[i_born][j_born].getMu());
         repaint(); // Repaint the panel to reflect updates
     }
 }
@@ -256,7 +273,7 @@ class Population extends JPanel {
 //
 public class EvolutionSimulation {
     public static void main(String[] args) {
-        int gridSize = 50; // Fixed number of cells in one dimension
+        int gridSize = 200; // Fixed number of cells in one dimension
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         int cellSize = Math.min(screenSize.width, screenSize.height) / gridSize; // Calculate cell size to fit the
                                                                                  // screen
@@ -270,11 +287,11 @@ public class EvolutionSimulation {
         frame.setLocationRelativeTo(null); // Center the frame on the screen
         frame.setVisible(true);
 
-        int n = 5000; // Set the number of random updates you want
+        int n = 20000; // Set the number of random updates you want
         for (int i = 0; i < n; i++) {
             // Sleep for a brief time to simulate updates over time
             try {
-                Thread.sleep(10); // Delay 100 ms between updates
+                Thread.sleep(0); // Delay 100 ms between updates
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
