@@ -1,6 +1,26 @@
 import javax.swing.*;
 import java.awt.*;
 import java.util.Random;
+import java.util.List;
+
+public static ArrayList<Double> normalizeProbas(ArrayList<Double> probas) {
+    // Create a copy of the probas list
+    ArrayList<Double> normalizedProbas = new ArrayList<>(probas);
+    
+    // Calculate the sum of the probabilities
+    double sum = 0;
+    for (double proba : probas) {
+        sum += proba;
+    }
+    
+    // Normalize each probability and store it in normalizedProbas
+    for (int i = 0; i < probas.size(); i++) {
+        double normalized = probas.get(i) / sum;
+        normalizedProbas.set(i, normalized);
+    }
+    
+    return normalizedProbas;
+}
 
 class Individual {
     private double[] phenotype;
@@ -65,6 +85,7 @@ class GridPanel extends JPanel {
     }
 }
 
+// 
 public class EvolutionSimulation {
     public static void main(String[] args) {
         int gridSize = 50; // Fixed number of cells in one dimension
