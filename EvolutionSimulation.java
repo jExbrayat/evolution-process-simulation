@@ -76,7 +76,7 @@ class EvolutionaryMaths {
     }
 
     public static double computeDyingProbability(int total_nb_individuals) {
-        return 1 / Math.pow(total_nb_individuals, 2);
+        return 1 / (double)total_nb_individuals;
     }
 
     public static double computeReproductionProbability(double fitness, double age, double alpha, double beta,
@@ -230,11 +230,11 @@ class Population extends JPanel {
 
         // Normalisation
         double[] proba_repro_normed = math.normalizeProbas(proba_repro);
-        System.out.println(proba_repro_normed);
+
         // Tirage aléatoire d'un individu
         int death = this.math.weightedRandomSelection(proba_death);
         int born = this.math.weightedRandomSelection(proba_repro_normed);
-
+ 
         // Update matrix
         int i_death = death / gridSize;
         int j_death = death % gridSize;
@@ -274,7 +274,7 @@ public class EvolutionSimulation {
         for (int i = 0; i < n; i++) {
             // Sleep for a brief time to simulate updates over time
             try {
-                Thread.sleep(100); // Delay 100 ms between updates
+                Thread.sleep(10); // Delay 100 ms between updates
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
