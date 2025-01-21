@@ -70,7 +70,7 @@ class EvolutionaryMaths {
         // Init Random object for generating gaussian variables
         Random rand = new Random();
         for (int i = 0; i < genotype.length; i++) {
-            genotype[i] += rand.nextGaussian() * mutation_rate;
+            genotype[i] += rand.nextGaussian() * mutation_rate; ////////////// TODO : Thresholding
         }
         return genotype;
     }
@@ -82,7 +82,7 @@ class EvolutionaryMaths {
      * 
      */
     public static double computeDyingProbability(int total_nb_individuals) {
-        return 1 / Math.pow(total_nb_individuals, 2);
+        return 1 / (double)total_nb_individuals;
     }
 
     /**
@@ -101,46 +101,110 @@ class EvolutionaryMaths {
         // Init Random object for generating gaussian variables
         Random rand = new Random();
         double epsilon = rand.nextGaussian();
-        double reprod_proba = alpha * fitness + beta * age + stochasticity_std * epsilon;
+        double reprod_proba = Math.exp(alpha * (0.5+fitness)*(0.5+fitness)*(0.5+fitness)*(0.5+fitness)*(0.5+fitness)*(0.5+fitness)) + beta * age + stochasticity_std * epsilon;
         return reprod_proba;
+    }
+
+    // Méthode pour effectuer une sélection pondérée
+    public static int weightedRandomSelection(double[] probabilities) {
+        Random random = new Random();
+        double rand = random.nextDouble(); // Génère un nombre entre 0 et 1
+        double cumulative = 0.0;
+
+        for (int i = 0; i < probabilities.length; i++) {
+            cumulative += probabilities[i];
+            if (rand < cumulative) {
+                return i; // Retourne l'index sélectionné
+            }
+        }
+        // Par sécurité (ne devrait pas se produire si les probabilités sont normalisées)
+        return probabilities.length - 1;
     }
 }
 
 class Individual {
     private int type;
     private double[] phenotype;
-    private float fitness;
+    private double fitness;
+    private Color color;
+    private double mu;
 
-    public Individual(int traitCount) {
-        phenotype = new double[traitCount];
-        Random random = new Random();
-        for (int i = 0; i < traitCount; i++) {
-            phenotype[i] = random.nextDouble(); // Random phenotype value between 0 and 1
+    public Individual(int traitCount, int type) {
+        this.phenotype = new double[traitCount];
+        this.type = type;
+
+        if(type == 0){
+            this.color = new Color(0, 0, 147);
+            this.mu = 0;
+            for(int i = 0; i < traitCount;i++){
+                this.phenotype[i] = 0;
+            }
+        }
+        if(type == 1){
+            this.color = new Color(147, 147, 0);
+            this.mu = 0;
+            for(int i = 0; i < traitCount;i++){
+                this.phenotype[i] = 0.5;
+            }
         }
     }
 
-    public void randomizePhenotype() {
-        Random random = new Random();
-        for (int i = 0; i < phenotype.length; i++) {
-            phenotype[i] = random.nextDouble(); // Random phenotype value between 0 and 1
-        }
-    }
 
     public Color getColor() {
-        int colorValue = (int) (phenotype[0] * 255);
-        return new Color(colorValue, colorValue, 255 - colorValue);
+        return this.color;
+    }
+
+    public void setColor(Color new_color) {
+        this.color = new_color;
+    }
+
+    public double[] getPhenotype() {
+        return this.phenotype;
+    }
+
+    public void setPhenotype(double[] new_phenotype) {
+        this.phenotype = new_phenotype;
+    }
+
+    public int getType() {
+        return this.type;
+    }
+
+    public void setType(int new_type) {
+        this.type = new_type;
+    }
+
+    public double getFitness() {
+        return this.fitness;
+    }
+
+    public void setFitness(double new_fit) {
+        this.fitness = new_fit;
+    }
+
+    public double getMu() {
+        return this.mu;
+    }
+
+    public void setMu(double new_mu) {
+        this.mu = new_mu;
     }
 }
+
 
 class Population extends JPanel {
     private final int gridSize; // Number of cells in one dimension
     private final int cellSize; // Size of each cell in pixels
     private final Individual[][] grid;
+    private final int d;
+    private EvolutionaryMaths math;
 
     public Population(int gridSize, int cellSize, int traitCount) {
         this.gridSize = gridSize;
         this.cellSize = cellSize;
         this.grid = new Individual[gridSize][gridSize];
+        this.d = traitCount;
+        this.math = new EvolutionaryMaths(this.d,1);
         initializeGrid(traitCount);
         setPreferredSize(new Dimension(gridSize * cellSize, gridSize * cellSize));
     }
@@ -148,7 +212,12 @@ class Population extends JPanel {
     private void initializeGrid(int traitCount) {
         for (int i = 0; i < gridSize; i++) {
             for (int j = 0; j < gridSize; j++) {
-                grid[i][j] = new Individual(traitCount);
+                if(i % 2 == 0){
+                    grid[i][j] = new Individual(traitCount,0);
+                }
+                else{
+                    grid[i][j] = new Individual(traitCount,1);
+                }                
             }
         }
     }
@@ -169,11 +238,51 @@ class Population extends JPanel {
     }
 
     public void updateGrid() {
-        // Randomize the phenotype of a random individual to simulate change
-        Random random = new Random();
-        int x = random.nextInt(gridSize);
-        int y = random.nextInt(gridSize);
-        grid[x][y].randomizePhenotype();
+        // Mutation aléatoire pour tout le monde.
+        for (int i = 0; i < gridSize; i++) {
+            for (int j = 0; j < gridSize; j++) {
+                grid[i][j].setPhenotype(this.math.mutate(grid[i][j].getPhenotype(),grid[i][j].getMu()));
+                grid[i][j].setFitness(this.math.Fitness(grid[i][j].getPhenotype()));
+                System.out.println(grid[i][j].getType());
+                System.out.println(grid[i][j].getPhenotype());
+                System.out.println(grid[i][j].getFitness());
+
+
+            }
+        }
+        // Calcul des probas
+        int dim_vector = gridSize*gridSize;
+        double[] proba_repro = new double[dim_vector];
+        double[] proba_death = new double[dim_vector];
+        for (int i = 0; i < gridSize; i++) {
+            for (int j = 0; j < gridSize; j++) {
+                proba_repro[i*gridSize + j] = math.computeReproductionProbability(grid[i][j].getFitness(), 50, 1, 0,0);
+                proba_death[i*gridSize + j] = math.computeDyingProbability(dim_vector);
+            }
+        }
+
+
+        // Normalisation
+        double[] proba_repro_normed = math.normalizeProbas(proba_repro);
+
+        // Tirage aléatoire d'un individu
+        int death = this.math.weightedRandomSelection(proba_death);
+        int born = this.math.weightedRandomSelection(proba_repro_normed);
+ 
+        // Update matrix
+        int i_death = death / gridSize;
+        int j_death = death % gridSize;
+
+        int i_born = born / gridSize;
+        int j_born = born % gridSize;
+
+        // System.out.println(i_death);
+        // System.out.println(j_death);
+
+        grid[i_death][j_death].setColor(grid[i_born][j_born].getColor());
+        grid[i_death][j_death].setPhenotype(grid[i_born][j_born].getPhenotype());
+        grid[i_death][j_death].setType(grid[i_born][j_born].getType()); 
+        grid[i_death][j_death].setMu(grid[i_born][j_born].getMu());
         repaint(); // Repaint the panel to reflect updates
     }
 }
@@ -181,7 +290,7 @@ class Population extends JPanel {
 //
 public class EvolutionSimulation {
     public static void main(String[] args) {
-        int gridSize = 50; // Fixed number of cells in one dimension
+        int gridSize = 200; // Fixed number of cells in one dimension
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         int cellSize = Math.min(screenSize.width, screenSize.height) / gridSize; // Calculate cell size to fit the
                                                                                  // screen
@@ -195,11 +304,11 @@ public class EvolutionSimulation {
         frame.setLocationRelativeTo(null); // Center the frame on the screen
         frame.setVisible(true);
 
-        int n = 5000; // Set the number of random updates you want
+        int n = 20000; // Set the number of random updates you want
         for (int i = 0; i < n; i++) {
             // Sleep for a brief time to simulate updates over time
             try {
-                Thread.sleep(100); // Delay 100 ms between updates
+                Thread.sleep(0); // Delay 100 ms between updates
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
