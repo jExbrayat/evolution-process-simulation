@@ -106,6 +106,12 @@ class EvolutionaryMaths {
     }
 
     // Méthode pour effectuer une sélection pondérée
+    /**
+     * 
+     * @param probabilities
+     * @return Integer representing the flat index of the selected individual
+     * 
+     */
     public static int weightedRandomSelection(double[] probabilities) {
         Random random = new Random();
         double rand = random.nextDouble(); // Génère un nombre entre 0 et 1
@@ -128,20 +134,23 @@ class Individual {
     private double fitness;
     private Color color;
     private double mu;
+    public Color type0_color = new Color(0, 0, 147);  
+    public Color type1_color = new Color(147, 147, 0);
+    
 
     public Individual(int traitCount, int type) {
         this.phenotype = new double[traitCount];
         this.type = type;
 
         if(type == 0){
-            this.color = new Color(0, 0, 147);
+            this.color = type0_color;
             this.mu = 0;
             for(int i = 0; i < traitCount;i++){
                 this.phenotype[i] = 0;
             }
         }
         if(type == 1){
-            this.color = new Color(147, 147, 0);
+            this.color = type1_color;
             this.mu = 0;
             for(int i = 0; i < traitCount;i++){
                 this.phenotype[i] = 0.5;
@@ -241,13 +250,8 @@ class Population extends JPanel {
         // Mutation aléatoire pour tout le monde.
         for (int i = 0; i < gridSize; i++) {
             for (int j = 0; j < gridSize; j++) {
-                grid[i][j].setPhenotype(this.math.mutate(grid[i][j].getPhenotype(),grid[i][j].getMu()));
-                grid[i][j].setFitness(this.math.Fitness(grid[i][j].getPhenotype()));
-                System.out.println(grid[i][j].getType());
-                System.out.println(grid[i][j].getPhenotype());
-                System.out.println(grid[i][j].getFitness());
-
-
+                grid[i][j].setPhenotype(this.math.mutate(grid[i][j].getPhenotype(), grid[i][j].getMu()));
+                grid[i][j].setFitness(this.math.Fitness(grid[i][j].getPhenotype())); 
             }
         }
         // Calcul des probas
