@@ -1,8 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
 import java.util.Random;
-import java.util.List;
-import java.util.Random;
 
 class EvolutionaryMaths {
 
@@ -141,6 +139,13 @@ class Individual {
     public Color type0_color = new Color(0, 0, 147);
     public Color type1_color = new Color(147, 147, 0);
 
+    /**
+     * Constructor of Individual class. Create an individual with a phenotype vector of length traitCount
+     * and a type.
+     * @param traitCount
+     * @param type
+     * 
+     */
     public Individual(int traitCount, int type) {
         this.phenotype = new double[traitCount];
         this.type = type;
@@ -279,9 +284,6 @@ class Population extends JPanel {
 
         int i_born = born / gridSize;
         int j_born = born % gridSize;
-
-        // System.out.println(i_death);
-        // System.out.println(j_death);
 
         grid[i_death][j_death].setColor(grid[i_born][j_born].getColor());
         grid[i_death][j_death].setPhenotype(grid[i_born][j_born].getPhenotype());
