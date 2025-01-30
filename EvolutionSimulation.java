@@ -29,248 +29,248 @@ class EvolutionaryMaths {
      * @param probas Vector of probabilities
      * @return
      */
-    public static double[] normalizeProbas(double[] probas) {
-        double[] normalizedProbas = new double[probas.length];
-
-        double sum = 0;
-        for (double proba : probas) {
-            sum += proba;
-        }
-
-        for (int i = 0; i < probas.length; i++) {
-            double normalized = probas[i] / sum;
-            normalizedProbas[i] = normalized;
-        }
-
-        return normalizedProbas;
-    }
-
-    /**
-     * @brief Compute fitness for a individual's genotype
-     * @return Fitness score
-     */
-    public double Fitness(double[] genotype) {
-        double euclidian_dist = 0;
-        for (int i = 0; i < genotype.length; i++) {
-            euclidian_dist += Math.pow(genotype[i] - optimum_genotype[i], 2);
-        }
-        euclidian_dist = Math.sqrt(euclidian_dist);
-
-        double fitness = Math.exp(-fitness_landscape_kurtosis * Math.pow(euclidian_dist, 2));
-
-        return fitness;
-    }
-
-    /**
-     * @brief Mutate an individual's genotype
-     * @param genotype
-     * @return Mutated genotype
-     */
-    public static double[] mutate(double[] genotype, double mutation_rate) {
-        // Init Random object for generating gaussian variables
-        Random rand = new Random();
-        for (int i = 0; i < genotype.length; i++) {
-            genotype[i] += rand.nextGaussian() * mutation_rate; ////////////// TODO : Thresholding
-        }
-        return genotype;
-    }
-
-    /**
-     * 
-     * @param total_nb_individuals
-     * @return The dying probability of an individual, which is the same for everyone
-     * 
-     */
-    public static double computeDyingProbability(int total_nb_individuals) {
-        return 1 / (double)total_nb_individuals;
-    }
-
-    /**
-     * Compute the reproduction probability of an individual given by:
-     * alpha * fitness + beta * age + randn(0, 1) * epsilon
-     * @param fitness Fitness score of the individual
-     * @param age Float, age of the individual 
-     * @param alpha 
-     * @param beta
-     * @param stochasticity_std
-     * @return Non normalized reproduction probability
-     * 
-     */
-    public static double computeReproductionProbability(double fitness, double age, double alpha, double beta,
-            double stochasticity_std) {
-        // Init Random object for generating gaussian variables
-        Random rand = new Random();
-        double epsilon = rand.nextGaussian();
-        double reprod_proba = Math.exp(alpha * (0.5+fitness)*(0.5+fitness)*(0.5+fitness)*(0.5+fitness)*(0.5+fitness)*(0.5+fitness)) + beta * age + stochasticity_std * epsilon;
-        return reprod_proba;
-    }
-
-    // Méthode pour effectuer une sélection pondérée
-    /**
-     * 
-     * @param probabilities
-     * @return Integer representing the flat index of the selected individual
-     * 
-     */
-    public static int weightedRandomSelection(double[] probabilities) {
-        Random random = new Random();
-        double rand = random.nextDouble(); // Génère un nombre entre 0 et 1
-        double cumulative = 0.0;
-
-        for (int i = 0; i < probabilities.length; i++) {
-            cumulative += probabilities[i];
-            if (rand < cumulative) {
-                return i; // Retourne l'index sélectionné
-            }
-        }
-        // Par sécurité (ne devrait pas se produire si les probabilités sont normalisées)
-        return probabilities.length - 1;
-    }
-}
-
-class Individual {
-    private int type;
-    private double[] phenotype;
-    private double fitness;
-    private Color color;
-    private double mu;
-    public Color type0_color = new Color(0, 0, 147);  
-    public Color type1_color = new Color(147, 147, 0);
+    public double[] normalizeProbas(double[] probas) {
+            double[] normalizedProbas = new double[probas.length];
     
-
-    public Individual(int traitCount, int type) {
-        this.phenotype = new double[traitCount];
-        this.type = type;
-
-        if(type == 0){
-            this.color = type0_color;
-            this.mu = 0;
-            for(int i = 0; i < traitCount;i++){
-                this.phenotype[i] = 0;
+            double sum = 0;
+            for (double proba : probas) {
+                sum += proba;
             }
-        }
-        if(type == 1){
-            this.color = type1_color;
-            this.mu = 0;
-            for(int i = 0; i < traitCount;i++){
-                this.phenotype[i] = 0.5;
+    
+            for (int i = 0; i < probas.length; i++) {
+                double normalized = probas[i] / sum;
+                normalizedProbas[i] = normalized;
             }
+    
+            return normalizedProbas;
         }
-    }
-
-
-    public Color getColor() {
-        return this.color;
-    }
-
-    public void setColor(Color new_color) {
-        this.color = new_color;
-    }
-
-    public double[] getPhenotype() {
-        return this.phenotype;
-    }
-
-    public void setPhenotype(double[] new_phenotype) {
-        this.phenotype = new_phenotype;
-    }
-
-    public int getType() {
-        return this.type;
-    }
-
-    public void setType(int new_type) {
-        this.type = new_type;
-    }
-
-    public double getFitness() {
-        return this.fitness;
-    }
-
-    public void setFitness(double new_fit) {
-        this.fitness = new_fit;
-    }
-
-    public double getMu() {
-        return this.mu;
-    }
-
-    public void setMu(double new_mu) {
-        this.mu = new_mu;
-    }
-}
-
-
-class Population extends JPanel {
-    private final int gridSize; // Number of cells in one dimension
-    private final int cellSize; // Size of each cell in pixels
-    private final Individual[][] grid;
-    private final int d;
-    private EvolutionaryMaths math;
-
-    public Population(int gridSize, int cellSize, int traitCount) {
-        this.gridSize = gridSize;
-        this.cellSize = cellSize;
-        this.grid = new Individual[gridSize][gridSize];
-        this.d = traitCount;
-        this.math = new EvolutionaryMaths(this.d,1);
-        initializeGrid(traitCount);
-        setPreferredSize(new Dimension(gridSize * cellSize, gridSize * cellSize));
-    }
-
-    private void initializeGrid(int traitCount) {
-        for (int i = 0; i < gridSize; i++) {
-            for (int j = 0; j < gridSize; j++) {
-                if(i % 2 == 0){
-                    grid[i][j] = new Individual(traitCount,0);
+    
+        /**
+         * @brief Compute fitness for a individual's genotype
+         * @return Fitness score
+         */
+        public double Fitness(double[] genotype) {
+            double euclidian_dist = 0;
+            for (int i = 0; i < genotype.length; i++) {
+                euclidian_dist += Math.pow(genotype[i] - optimum_genotype[i], 2);
+            }
+            euclidian_dist = Math.sqrt(euclidian_dist);
+    
+            double fitness = Math.exp(-fitness_landscape_kurtosis * Math.pow(euclidian_dist, 2));
+    
+            return fitness;
+        }
+    
+        /**
+         * @brief Mutate an individual's genotype
+         * @param genotype
+         * @return Mutated genotype
+         */
+        public double[] mutate(double[] genotype, double mutation_rate) {
+                // Init Random object for generating gaussian variables
+                Random rand = new Random();
+                for (int i = 0; i < genotype.length; i++) {
+                    genotype[i] += rand.nextGaussian() * mutation_rate; ////////////// TODO : Thresholding
                 }
-                else{
-                    grid[i][j] = new Individual(traitCount,1);
-                }                
+                return genotype;
             }
-        }
-    }
-
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        for (int i = 0; i < gridSize; i++) {
-            for (int j = 0; j < gridSize; j++) {
-                int x = i * cellSize;
-                int y = j * cellSize;
-                g.setColor(grid[i][j].getColor());
-                g.fillRect(x, y, cellSize, cellSize);
-                g.setColor(Color.BLACK);
-                g.drawRect(x, y, cellSize, cellSize);
-            }
-        }
-    }
-
-    public void updateGrid() {
-        // Mutation aléatoire pour tout le monde.
-        for (int i = 0; i < gridSize; i++) {
-            for (int j = 0; j < gridSize; j++) {
-                grid[i][j].setPhenotype(this.math.mutate(grid[i][j].getPhenotype(), grid[i][j].getMu()));
-                grid[i][j].setFitness(this.math.Fitness(grid[i][j].getPhenotype())); 
-            }
-        }
-        // Calcul des probas
-        int dim_vector = gridSize*gridSize;
-        double[] proba_repro = new double[dim_vector];
-        double[] proba_death = new double[dim_vector];
-        for (int i = 0; i < gridSize; i++) {
-            for (int j = 0; j < gridSize; j++) {
-                proba_repro[i*gridSize + j] = math.computeReproductionProbability(grid[i][j].getFitness(), 50, 1, 0,0);
-                proba_death[i*gridSize + j] = math.computeDyingProbability(dim_vector);
-            }
-        }
-
-
-        // Normalisation
-        double[] proba_repro_normed = math.normalizeProbas(proba_repro);
-
-        // Tirage aléatoire d'un individu
-        int death = this.math.weightedRandomSelection(proba_death);
+        
+            /**
+             * 
+             * @param total_nb_individuals
+             * @return The dying probability of an individual, which is the same for everyone
+             * 
+             */
+            public double computeDyingProbability(int total_nb_individuals) {
+                        return 1 / (double)total_nb_individuals;
+                    }
+                
+                    /**
+                     * Compute the reproduction probability of an individual given by:
+                     * alpha * fitness + beta * age + randn(0, 1) * epsilon
+                     * @param fitness Fitness score of the individual
+                     * @param age Float, age of the individual 
+                     * @param alpha 
+                     * @param beta
+                     * @param stochasticity_std
+                     * @return Non normalized reproduction probability
+                     * 
+                     */
+                    public double computeReproductionProbability(double fitness, double age, double alpha, double beta,
+                                double stochasticity_std) {
+                            // Init Random object for generating gaussian variables
+                            Random rand = new Random();
+                            double epsilon = rand.nextGaussian();
+                            double reprod_proba = Math.exp(alpha * (0.5+fitness)*(0.5+fitness)*(0.5+fitness)*(0.5+fitness)*(0.5+fitness)*(0.5+fitness)) + beta * age + stochasticity_std * epsilon;
+                            return reprod_proba;
+                        }
+                    
+                        // Méthode pour effectuer une sélection pondérée
+                        /**
+                         * 
+                         * @param probabilities
+                         * @return Integer representing the flat index of the selected individual
+                         * 
+                         */
+                        public int weightedRandomSelection(double[] probabilities) {
+                                                    Random random = new Random();
+                                                    double rand = random.nextDouble(); // Génère un nombre entre 0 et 1
+                                                    double cumulative = 0.0;
+                                            
+                                                    for (int i = 0; i < probabilities.length; i++) {
+                                                        cumulative += probabilities[i];
+                                                        if (rand < cumulative) {
+                                                            return i; // Retourne l'index sélectionné
+                                                        }
+                                                    }
+                                                    // Par sécurité (ne devrait pas se produire si les probabilités sont normalisées)
+                                                    return probabilities.length - 1;
+                                                }
+                                            }
+                                            
+                                            class Individual {
+                                                private int type;
+                                                private double[] phenotype;
+                                                private double fitness;
+                                                private Color color;
+                                                private double mu;
+                                                public Color type0_color = new Color(0, 0, 147);  
+                                                public Color type1_color = new Color(147, 147, 0);
+                                                
+                                            
+                                                public Individual(int traitCount, int type) {
+                                                    this.phenotype = new double[traitCount];
+                                                    this.type = type;
+                                            
+                                                    if(type == 0){
+                                                        this.color = type0_color;
+                                                        this.mu = 0;
+                                                        for(int i = 0; i < traitCount;i++){
+                                                            this.phenotype[i] = 0;
+                                                        }
+                                                    }
+                                                    if(type == 1){
+                                                        this.color = type1_color;
+                                                        this.mu = 0;
+                                                        for(int i = 0; i < traitCount;i++){
+                                                            this.phenotype[i] = 0.5;
+                                                        }
+                                                    }
+                                                }
+                                            
+                                            
+                                                public Color getColor() {
+                                                    return this.color;
+                                                }
+                                            
+                                                public void setColor(Color new_color) {
+                                                    this.color = new_color;
+                                                }
+                                            
+                                                public double[] getPhenotype() {
+                                                    return this.phenotype;
+                                                }
+                                            
+                                                public void setPhenotype(double[] new_phenotype) {
+                                                    this.phenotype = new_phenotype;
+                                                }
+                                            
+                                                public int getType() {
+                                                    return this.type;
+                                                }
+                                            
+                                                public void setType(int new_type) {
+                                                    this.type = new_type;
+                                                }
+                                            
+                                                public double getFitness() {
+                                                    return this.fitness;
+                                                }
+                                            
+                                                public void setFitness(double new_fit) {
+                                                    this.fitness = new_fit;
+                                                }
+                                            
+                                                public double getMu() {
+                                                    return this.mu;
+                                                }
+                                            
+                                                public void setMu(double new_mu) {
+                                                    this.mu = new_mu;
+                                                }
+                                            }
+                                            
+                                            
+                                            class Population extends JPanel {
+                                                private final int gridSize; // Number of cells in one dimension
+                                                private final int cellSize; // Size of each cell in pixels
+                                                private final Individual[][] grid;
+                                                private final int d;
+                                                private EvolutionaryMaths math;
+                                            
+                                                public Population(int gridSize, int cellSize, int traitCount) {
+                                                    this.gridSize = gridSize;
+                                                    this.cellSize = cellSize;
+                                                    this.grid = new Individual[gridSize][gridSize];
+                                                    this.d = traitCount;
+                                                    this.math = new EvolutionaryMaths(this.d,1);
+                                                    initializeGrid(traitCount);
+                                                    setPreferredSize(new Dimension(gridSize * cellSize, gridSize * cellSize));
+                                                }
+                                            
+                                                private void initializeGrid(int traitCount) {
+                                                    for (int i = 0; i < gridSize; i++) {
+                                                        for (int j = 0; j < gridSize; j++) {
+                                                            if(i % 2 == 0){
+                                                                grid[i][j] = new Individual(traitCount,0);
+                                                            }
+                                                            else{
+                                                                grid[i][j] = new Individual(traitCount,1);
+                                                            }                
+                                                        }
+                                                    }
+                                                }
+                                            
+                                                @Override
+                                                protected void paintComponent(Graphics g) {
+                                                    super.paintComponent(g);
+                                                    for (int i = 0; i < gridSize; i++) {
+                                                        for (int j = 0; j < gridSize; j++) {
+                                                            int x = i * cellSize;
+                                                            int y = j * cellSize;
+                                                            g.setColor(grid[i][j].getColor());
+                                                            g.fillRect(x, y, cellSize, cellSize);
+                                                            g.setColor(Color.BLACK);
+                                                            g.drawRect(x, y, cellSize, cellSize);
+                                                        }
+                                                    }
+                                                }
+                                            
+                                                public void updateGrid() {
+                                                    // Mutation aléatoire pour tout le monde.
+                                                    for (int i = 0; i < gridSize; i++) {
+                                                        for (int j = 0; j < gridSize; j++) {
+                                                            grid[i][j].setPhenotype(this.math.mutate(grid[i][j].getPhenotype(), grid[i][j].getMu()));
+                                                        grid[i][j].setFitness(this.math.Fitness(grid[i][j].getPhenotype())); 
+                                                    }
+                                                }
+                                                // Calcul des probas
+                                                int dim_vector = gridSize*gridSize;
+                                                double[] proba_repro = new double[dim_vector];
+                                                double[] proba_death = new double[dim_vector];
+                                                for (int i = 0; i < gridSize; i++) {
+                                                    for (int j = 0; j < gridSize; j++) {
+                                                        proba_repro[i*gridSize + j] = math.computeReproductionProbability(grid[i][j].getFitness(), 50, 1, 0,0);
+                                                    proba_death[i*gridSize + j] = math.computeDyingProbability(dim_vector);
+                                        }
+                                    }
+                            
+                            
+                                    // Normalisation
+                                    double[] proba_repro_normed = math.normalizeProbas(proba_repro);
+                        
+                                // Tirage aléatoire d'un individu
+                                int death = this.math.weightedRandomSelection(proba_death);
         int born = this.math.weightedRandomSelection(proba_repro_normed);
  
         // Update matrix
