@@ -273,7 +273,7 @@ class Population extends JPanel {
 //
 public class EvolutionSimulation {
     public static void main(String[] args) {
-        int gridSize = 200; // Fixed number of cells in one dimension
+        int gridSize = 20; // Fixed number of cells in one dimension
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         int cellSize = Math.min(screenSize.width, screenSize.height) / gridSize; // Calculate cell size to fit the
                                                                                  // screen
