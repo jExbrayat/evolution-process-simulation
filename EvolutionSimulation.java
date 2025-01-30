@@ -2,6 +2,13 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Random;
 
+
+class GlobalParameters {
+    public static double mu_type1 = 0.5;
+    public static double my_type2 = 0;
+
+}
+
 class EvolutionaryMaths {
 
     // Constructor
@@ -101,8 +108,7 @@ class EvolutionaryMaths {
         // Init Random object for generating gaussian variables
         Random rand = new Random();
         double epsilon = rand.nextGaussian();
-        double reprod_proba = Math.exp(alpha * (0.5 + fitness) * (0.5 + fitness) * (0.5 + fitness) * (0.5 + fitness)
-                * (0.5 + fitness) * (0.5 + fitness)) + beta * age + stochasticity_std * epsilon;
+        double reprod_proba = Math.exp(alpha * fitness + beta * age + stochasticity_std * epsilon);
         return reprod_proba;
     }
 
@@ -152,14 +158,14 @@ class Individual {
 
         if (type == 0) {
             this.color = type0_color;
-            this.mu = 0;
+            this.mu = GlobalParameters.mu_type1;
             for (int i = 0; i < traitCount; i++) {
                 this.phenotype[i] = 0;
             }
         }
         if (type == 1) {
             this.color = type1_color;
-            this.mu = 0;
+            this.mu = GlobalParameters.mu_type2;
             for (int i = 0; i < traitCount; i++) {
                 this.phenotype[i] = 0.5;
             }
@@ -204,6 +210,14 @@ class Individual {
 
     public void setMu(double new_mu) {
         this.mu = new_mu;
+    }
+
+    public void becomeMutator(int increasing_factor) {
+        this.mu = this.mu * increasing_factor;
+    }
+
+    public void reverseMutator(int decreasing_factor) {
+        this.mu = this.mu / decreasing_factor;
     }
 }
 
@@ -251,6 +265,32 @@ class Population extends JPanel {
         }
     }
 
+    public void makeMutator(int individualType) {     
+        // Choose a type to be mutator
+        for (int i=0; i < gridSize; i++) { // Mutate or not for each individual
+            for (int j = 0; j < gridSize; j++) {
+                Individual individual = grid[i][j]; // reference
+                if (individual.getType() == individualType) {
+                    int mu_increasing_factor = 5;
+                    individual.becomeMutator(5);
+                } 
+            }
+        }
+    }
+
+    public void cancelMutator(int individualType) {
+        // Choose a type to be mutator
+        for (int i=0; i < gridSize; i++) { // Mutate or not for each individual
+            for (int j = 0; j < gridSize; j++) {
+                Individual individual = grid[i][j]; // reference
+                if (individual.getType() == individualType) {
+                    int mu_increasing_factor = 5;
+                    individual.reverseMutator(5);
+                }
+            }
+        }
+    }
+
     public void updateGrid() {
         // Mutation aléatoire pour tout le monde.
         for (int i = 0; i < gridSize; i++) {
@@ -273,7 +313,7 @@ class Population extends JPanel {
 
         // Normalisation
         double[] proba_repro_normed = math.normalizeProbas(proba_repro);
-
+        
         // Tirage aléatoire d'un individu
         int death = this.math.weightedRandomSelection(proba_death);
         int born = this.math.weightedRandomSelection(proba_repro_normed);
@@ -296,7 +336,7 @@ class Population extends JPanel {
 //
 public class EvolutionSimulation {
     public static void main(String[] args) {
-        int gridSize = 20; // Fixed number of cells in one dimension
+        int gridSize = 100; // Fixed number of cells in one dimension
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         int cellSize = Math.min(screenSize.width, screenSize.height) / gridSize; // Calculate cell size to fit the
                                                                                  // screen

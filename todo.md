@@ -4,3 +4,4 @@
     - [ ] Whats the difference between genotype and phenotype ?
 
 - [ ] toute la population en un passage
+- [ ] faire muter mutation rate
