@@ -1,13 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
 import java.util.Random;
-
-
-class GlobalParameters {
-    public static double mu_type1 = 0.5;
-    public static double my_type2 = 0;
-
-}
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Random;
@@ -149,6 +142,10 @@ class Individual {
     private double mu;
     public Color type0_color = new Color(0, 0, 147);
     public Color type1_color = new Color(147, 147, 0);
+    private double mu_type0 = 0.1;
+    private double mu_type1 = 0.1;
+    
+
 
     /**
      * Constructor of Individual class. Create an individual with a phenotype vector of length traitCount
@@ -163,14 +160,14 @@ class Individual {
 
         if (type == 0) {
             this.color = type0_color;
-            this.mu = GlobalParameters.mu_type1;
+            this.mu = mu_type0;
             for (int i = 0; i < traitCount; i++) {
                 this.phenotype[i] = 0;
             }
         }
         if (type == 1) {
             this.color = type1_color;
-            this.mu = GlobalParameters.mu_type2;
+            this.mu = mu_type1;
             for (int i = 0; i < traitCount; i++) {
                 this.phenotype[i] = 0.5;
             }
@@ -362,11 +359,7 @@ class Population extends JPanel {
 //
 public class EvolutionSimulation {
     public static void main(String[] args) {
-<<<<<<< HEAD
-        int gridSize = 100; // Fixed number of cells in one dimension
-=======
-        int gridSize = 20; 
->>>>>>> main
+        int gridSize = 200; 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         int cellSize = Math.min(screenSize.width, screenSize.height) / gridSize; 
 
@@ -379,7 +372,7 @@ public class EvolutionSimulation {
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
 
-        int n = 2000;
+        int n = 1000;
         List<String> csvData = new ArrayList<>();
         csvData.add("Time Step,Class 0,Class 1");  // CSV header
 
@@ -389,8 +382,11 @@ public class EvolutionSimulation {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            if (i == 500) { // Make 1 become mutator at the 500th timestep
+                pop.makeMutator(1);
+            }
             pop.updateGrid();
-
+            
             int[] counts = pop.countIndividuals();
             System.out.println("Time step " + i + ": Class 0 = " + counts[0] + ", Class 1 = " + counts[1]);
 
