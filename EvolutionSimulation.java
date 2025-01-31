@@ -144,8 +144,8 @@ class Individual {
     private double mu;
     public Color type0_color = new Color(0, 0, 147);
     public Color type1_color = new Color(147, 147, 0);
-    private double mu_type0 = 10E-5;
-    private double mu_type1 = 10E-5;
+    public double mu_type0 = 10E-6;
+    public double mu_type1 = 10E-5;
     
 
 
@@ -431,7 +431,7 @@ public class EvolutionSimulation {
                 frame.setVisible(true);
             }
 
-            int n = 7000;
+            int n = 30000;
             
             for (int i = 0; i < n; i++) {
                 try {
@@ -440,6 +440,10 @@ public class EvolutionSimulation {
                     e.printStackTrace();
                 }
                 pop.updateGrid();
+
+                if (i == 5000) {
+                    pop.makeCatastrophy(1);
+                }
                 
                 int[] counts = pop.countIndividuals();
                 double[] avgFitness = pop.computeAverageFitness();
