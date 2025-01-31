@@ -8,6 +8,11 @@ class GlobalParameters {
     public static double my_type2 = 0;
 
 }
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Random;
+import java.io.FileWriter;
+import java.io.IOException;
 
 class EvolutionaryMaths {
 
@@ -291,12 +296,33 @@ class Population extends JPanel {
         }
     }
 
+    public int[] countIndividuals() {
+        int countClass0 = 0;
+        int countClass1 = 0;
+
+        for (int i = 0; i < gridSize; i++) {
+            for (int j = 0; j < gridSize; j++) {
+                if (grid[i][j].getType() == 0) {
+                    countClass0++;
+                } else if (grid[i][j].getType() == 1) {
+                    countClass1++;
+                }
+            }
+        }
+        return new int[]{countClass0, countClass1};
+    }
+
+
     public void updateGrid() {
         // Mutation aléatoire pour tout le monde.
         for (int i = 0; i < gridSize; i++) {
             for (int j = 0; j < gridSize; j++) {
                 grid[i][j].setPhenotype(this.math.mutate(grid[i][j].getPhenotype(), grid[i][j].getMu()));
                 grid[i][j].setFitness(this.math.Fitness(grid[i][j].getPhenotype()));
+                // System.out.println(grid[i][j].getType());
+                // System.out.println(grid[i][j].getPhenotype());
+                // System.out.println(grid[i][j].getFitness());
+
             }
         }
         // Calcul des probas
@@ -336,29 +362,55 @@ class Population extends JPanel {
 //
 public class EvolutionSimulation {
     public static void main(String[] args) {
+<<<<<<< HEAD
         int gridSize = 100; // Fixed number of cells in one dimension
+=======
+        int gridSize = 20; 
+>>>>>>> main
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int cellSize = Math.min(screenSize.width, screenSize.height) / gridSize; // Calculate cell size to fit the
-                                                                                 // screen
+        int cellSize = Math.min(screenSize.width, screenSize.height) / gridSize; 
 
         JFrame frame = new JFrame("Evolution Simulation");
         Population pop = new Population(gridSize, cellSize, 3);
 
         frame.add(pop);
-        frame.pack(); // Automatically sizes the frame to fit the panel
+        frame.pack();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setLocationRelativeTo(null); // Center the frame on the screen
+        frame.setLocationRelativeTo(null);
         frame.setVisible(true);
 
-        int n = 20000; // Set the number of random updates you want
+        int n = 2000;
+        List<String> csvData = new ArrayList<>();
+        csvData.add("Time Step,Class 0,Class 1");  // CSV header
+
         for (int i = 0; i < n; i++) {
-            // Sleep for a brief time to simulate updates over time
             try {
-                Thread.sleep(0); // Delay 100 ms between updates
+                Thread.sleep(0);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            pop.updateGrid(); // Randomly update the grid
+            pop.updateGrid();
+
+            int[] counts = pop.countIndividuals();
+            System.out.println("Time step " + i + ": Class 0 = " + counts[0] + ", Class 1 = " + counts[1]);
+
+            // Store data in list for CSV
+            csvData.add(i + "," + counts[0] + "," + counts[1]);
+        }
+
+        // Save results to CSV
+        saveToCSV("./class_counts.csv", csvData);
+    }
+
+    private static void saveToCSV(String filename, List<String> data) {
+        try (FileWriter writer = new FileWriter(filename)) {
+            for (String line : data) {
+                writer.write(line + "\n");
+            }
+            System.out.println("Data saved to " + filename);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
+
