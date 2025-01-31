@@ -215,7 +215,7 @@ class Individual {
     }
 
     public void becomeMutator(int increasing_factor) {
-        this.mu = this.mu * increasing_factor;
+        this.mu = this.mu + 0.01;
     }
 
     public void reverseMutator(int decreasing_factor) {
@@ -366,7 +366,6 @@ public class EvolutionSimulation {
         }
         
 
-        double mu_type1 = 0.08;
         int visualizationFlag = Integer.parseInt(args[0]);
         int m = Integer.parseInt(args[1]);
         int gridSize = 20;
@@ -387,16 +386,6 @@ public class EvolutionSimulation {
                 frame.setLocationRelativeTo(null);
                 frame.setVisible(true);
             }
-            if (i == 500) { // Make 1 become mutator at the 500th timestep
-                pop.makeMutator(1);
-            }
-            pop.updateGrid();
-            
-            int[] counts = pop.countIndividuals();
-            System.out.println("Time step " + i + ": Class 0 = " + counts[0] + ", Class 1 = " + counts[1]);
-
-            // Store data in list for CSV
-            csvData.add(i + "," + counts[0] + "," + counts[1]);
 
             int n = 20000;
             
@@ -407,6 +396,10 @@ public class EvolutionSimulation {
                     e.printStackTrace();
                 }
                 pop.updateGrid();
+                
+                if (i == 5000) { // Make 1 become mutator at the 500th timestep
+                    pop.makeMutator(0);
+                }
                 
                 int[] counts = pop.countIndividuals();
                 System.out.println("Experiment " + (exp + 1) + " - Time step " + i + ": Class 0 = " + counts[0] + ", Class 1 = " + counts[1]);
