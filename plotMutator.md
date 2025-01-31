@@ -1,1 +1,0 @@
-The two populations start with the same size, equal fitness and a reasonably low initial mutation rate. The statu quo is broken at the step 5000 where a mutator allele is introduced in Population 0. Quickly, Population 0 gets a fitness advantage which overhelms Population 1.
