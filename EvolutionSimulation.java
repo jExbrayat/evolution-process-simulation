@@ -232,32 +232,52 @@ class Population extends JPanel {
     private final int d;
     private EvolutionaryMaths math;
 
-    public Population(int gridSize, int cellSize, int traitCount) {
+    public Population(int gridSize, int cellSize, int traitCount, String config) {
         this.gridSize = gridSize;
         this.cellSize = cellSize;
         this.grid = new Individual[gridSize][gridSize];
         this.d = traitCount;
         this.math = new EvolutionaryMaths(this.d, 1);
-        initializeGrid(traitCount);
+        initializeGrid(traitCount, config);
         setPreferredSize(new Dimension(gridSize * cellSize, gridSize * cellSize));
     }
 
-    private void initializeGrid(int traitCount) {
-        // Make pop 0 undernumbered
-        int target_nb0 = (int) Math.floor(gridSize * gridSize * 0.5);
-        int count0 = 0; // Count the # of 0 
-        
-        for (int i = 0; i < gridSize; i++) {
-            for (int j = 0; j < gridSize; j++) {
-                if (count0 < target_nb0) {
-                    grid[i][j] = new Individual(traitCount, 0);
-                    count0++;
-                } else {
-                    grid[i][j] = new Individual(traitCount, 1);
+    public void initializeGrid(int traitCount, String config) {
+        switch (config) {
+            case "split": // Default setup: half type 0, half type 1
+                int target_nb0 = (int) Math.floor(gridSize * gridSize * 0.5);
+                int count0 = 0;
+                for (int i = 0; i < gridSize; i++) {
+                    for (int j = 0; j < gridSize; j++) {
+                        if (count0 < target_nb0) {
+                            grid[i][j] = new Individual(traitCount, 0);
+                            count0++;
+                        } else {
+                            grid[i][j] = new Individual(traitCount, 1);
+                        }
+                    }
                 }
-            }
+                break;
+            case "checkerboard": // Alternate type 0 and type 1
+                for (int i = 0; i < gridSize; i++) {
+                    for (int j = 0; j < gridSize; j++) {
+                        grid[i][j] = new Individual(traitCount, (i + j) % 2);
+                    }
+                }
+                break;
+            case "random": // Randomly assign types
+                Random rand = new Random();
+                for (int i = 0; i < gridSize; i++) {
+                    for (int j = 0; j < gridSize; j++) {
+                        grid[i][j] = new Individual(traitCount, rand.nextInt(2));
+                    }
+                }
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown configuration: " + config);
         }
     }
+
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -360,6 +380,53 @@ class Population extends JPanel {
         repaint(); // Repaint the panel to reflect updates
     }
 
+    public void updateGrid2() {
+        // Step 1: Select a random individual to die
+        int death = new Random().nextInt(gridSize * gridSize);
+        int i_death = death / gridSize;
+        int j_death = death % gridSize;
+
+        // Step 2: Find Moore neighborhood (8 neighbors)
+        List<int[]> neighbors = new ArrayList<>();
+        List<Double> fitnessValues = new ArrayList<>();
+        double fitnessSum = 0.0;
+
+        for (int di = -1; di <= 1; di++) {
+            for (int dj = -1; dj <= 1; dj++) {
+                int ni = i_death + di;
+                int nj = j_death + dj;
+                if (ni >= 0 && ni < gridSize && nj >= 0 && nj < gridSize && !(ni == i_death && nj == j_death)) {
+                    neighbors.add(new int[]{ni, nj});
+                    double fit = grid[ni][nj].getFitness();
+                    fitnessValues.add(fit);
+                    fitnessSum += fit;
+                }
+            }
+        }
+
+        // Step 3: Compute fitness-weighted probabilities
+        double[] probabilities = new double[neighbors.size()];
+        for (int k = 0; k < neighbors.size(); k++) {
+            probabilities[k] = fitnessValues.get(k) / fitnessSum;
+        }
+
+        // Step 4: Select a parent based on weighted probability
+        int selectedIdx = math.weightedRandomSelection(probabilities);
+        int[] parentCoords = neighbors.get(selectedIdx);
+        int i_born = parentCoords[0];
+        int j_born = parentCoords[1];
+
+        // Step 5: Offspring inherits parent's traits with mutation
+        grid[i_death][j_death].setColor(grid[i_born][j_born].getColor());
+        grid[i_death][j_death].setPhenotype(math.mutate(grid[i_born][j_born].getPhenotype(), grid[i_born][j_born].getMu()));
+        grid[i_death][j_death].setType(grid[i_born][j_born].getType());
+        grid[i_death][j_death].setMu(grid[i_born][j_born].getMu());
+        grid[i_death][j_death].setFitness(math.Fitness(grid[i_death][j_death].getPhenotype()));
+        
+        repaint(); // Refresh visualization
+    }
+
+
     public double[] computeAverageFitness() {
         double totalFitnessClass0 = 0, totalFitnessClass1 = 0;
         int countClass0 = 0, countClass1 = 0;
@@ -393,7 +460,7 @@ public class EvolutionSimulation {
         
         int visualizationFlag = Integer.parseInt(args[0]);
         int m = Integer.parseInt(args[1]);
-        int gridSize = 20;
+        int gridSize = 100;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         int cellSize = Math.min(screenSize.width, screenSize.height) / gridSize;
 
@@ -401,7 +468,8 @@ public class EvolutionSimulation {
         csvData.add("Experiment,Time Step,Class 0,Class 1,Avg Fitness Class 0,Avg Fitness Class 1");
 
         for (int exp = 0; exp < m; exp++) {
-            Population pop = new Population(gridSize, cellSize, 3);
+            String config = "split";
+            Population pop = new Population(gridSize, cellSize, 3, config);
             JFrame frame = null;
             if (visualizationFlag == 1) {
                 frame = new JFrame("Evolution Simulation - Run " + (exp + 1));
@@ -412,7 +480,7 @@ public class EvolutionSimulation {
                 frame.setVisible(true);
             }
 
-            int n = 7000;
+            int n = 7000000;
             
             for (int i = 0; i < n; i++) {
                 try {
@@ -420,7 +488,7 @@ public class EvolutionSimulation {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                pop.updateGrid();
+                pop.updateGrid2();
                 
                 int[] counts = pop.countIndividuals();
                 double[] avgFitness = pop.computeAverageFitness();

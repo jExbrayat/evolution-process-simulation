@@ -10,5 +10,5 @@ build:
 	$(compiler) $(src_dir)/$(target).java
 
 run:
-	$(runner) $(target) 0 10
+	$(runner) $(target) 1 1
 	
