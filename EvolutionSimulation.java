@@ -108,7 +108,7 @@ class EvolutionaryMaths {
         // Init Random object for generating gaussian variables
         Random rand = new Random();
         double epsilon = rand.nextGaussian();
-        double reprod_proba = Math.exp(2 * fitness);
+        double reprod_proba = Math.exp(2 * fitness); // TODO: make clean function
         return reprod_proba;
     }
 
@@ -144,7 +144,7 @@ class Individual {
     private double mu;
     public Color type0_color = new Color(0, 0, 147);
     public Color type1_color = new Color(147, 147, 0);
-    public double mu_type0 = 10E-6;
+    public double mu_type0 = 10E-5;
     public double mu_type1 = 10E-5;
     
 
@@ -217,7 +217,7 @@ class Individual {
     }
 
     public void becomeMutator(int increasing_factor) {
-        this.mu = this.mu + 0.01;
+        this.mu = this.mu + 2;
     }
 
     public void reverseMutator(int decreasing_factor) {
@@ -442,7 +442,7 @@ public class EvolutionSimulation {
                 pop.updateGrid();
 
                 if (i == 5000) {
-                    pop.makeCatastrophy(1);
+                    pop.makeMutator(1);
                 }
                 
                 int[] counts = pop.countIndividuals();
