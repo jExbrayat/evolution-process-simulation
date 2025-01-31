@@ -13,12 +13,12 @@ plt.figure(figsize=(10, 5))
 
 for exp in experiments:
     exp_data = df[df["Experiment"] == exp]
-    ratio = exp_data["Class 0"] / (exp_data["Class 1"] + 1e-6)  # Avoid division by zero
+    ratio = exp_data["Class 1"] / (exp_data["Class 0"] + 1e-6)  # Avoid division by zero
     plt.plot(exp_data["Time Step"], ratio, linestyle="solid", alpha=0.7)
 
 # Customization
 plt.xlabel("Time Step")
-plt.ylabel("Ratio Class 0 / Class 1")
+plt.ylabel("Ratio Class 1 / Class 0")
 plt.title("Evolution of the Population in Presence of a Mutator Allele")
 plt.ylim(0, 3)
 plt.xlim(0, 12500)
