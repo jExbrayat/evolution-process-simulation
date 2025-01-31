@@ -308,6 +308,7 @@ class Population extends JPanel {
     
     
 
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -418,6 +419,53 @@ class Population extends JPanel {
         grid[i_death][j_death].setMu(grid[i_born][j_born].getMu());
         repaint();
     }
+
+    public void updateGrid2() {
+        // Step 1: Select a random individual to die
+        int death = new Random().nextInt(gridSize * gridSize);
+        int i_death = death / gridSize;
+        int j_death = death % gridSize;
+
+        // Step 2: Find Moore neighborhood (8 neighbors)
+        List<int[]> neighbors = new ArrayList<>();
+        List<Double> fitnessValues = new ArrayList<>();
+        double fitnessSum = 0.0;
+
+        for (int di = -1; di <= 1; di++) {
+            for (int dj = -1; dj <= 1; dj++) {
+                int ni = i_death + di;
+                int nj = j_death + dj;
+                if (ni >= 0 && ni < gridSize && nj >= 0 && nj < gridSize && !(ni == i_death && nj == j_death)) {
+                    neighbors.add(new int[]{ni, nj});
+                    double fit = grid[ni][nj].getFitness();
+                    fitnessValues.add(fit);
+                    fitnessSum += fit;
+                }
+            }
+        }
+
+        // Step 3: Compute fitness-weighted probabilities
+        double[] probabilities = new double[neighbors.size()];
+        for (int k = 0; k < neighbors.size(); k++) {
+            probabilities[k] = fitnessValues.get(k) / fitnessSum;
+        }
+
+        // Step 4: Select a parent based on weighted probability
+        int selectedIdx = math.weightedRandomSelection(probabilities);
+        int[] parentCoords = neighbors.get(selectedIdx);
+        int i_born = parentCoords[0];
+        int j_born = parentCoords[1];
+
+        // Step 5: Offspring inherits parent's traits with mutation
+        grid[i_death][j_death].setColor(grid[i_born][j_born].getColor());
+        grid[i_death][j_death].setPhenotype(math.mutate(grid[i_born][j_born].getPhenotype(), grid[i_born][j_born].getMu()));
+        grid[i_death][j_death].setType(grid[i_born][j_born].getType());
+        grid[i_death][j_death].setMu(grid[i_born][j_born].getMu());
+        grid[i_death][j_death].setFitness(math.Fitness(grid[i_death][j_death].getPhenotype()));
+        
+        repaint(); // Refresh visualization
+    }
+
 
     public double[] computeAverageFitness() {
         double totalFitnessClass0 = 0, totalFitnessClass1 = 0;
