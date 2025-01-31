@@ -357,30 +357,35 @@ class Population extends JPanel {
 }
 
 //
+
 public class EvolutionSimulation {
     public static void main(String[] args) {
-        int gridSize = 200; 
+        if (args.length < 2) {
+            System.out.println("Usage: java EvolutionSimulation <visualization_flag (0 or 1)> <m>");
+            return;
+        }
+        
+
+        double mu_type1 = 0.08;
+        int visualizationFlag = Integer.parseInt(args[0]);
+        int m = Integer.parseInt(args[1]);
+        int gridSize = 20;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int cellSize = Math.min(screenSize.width, screenSize.height) / gridSize; 
+        int cellSize = Math.min(screenSize.width, screenSize.height) / gridSize;
 
-        JFrame frame = new JFrame("Evolution Simulation");
-        Population pop = new Population(gridSize, cellSize, 3);
-
-        frame.add(pop);
-        frame.pack();
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
-
-        int n = 1000;
         List<String> csvData = new ArrayList<>();
-        csvData.add("Time Step,Class 0,Class 1");  // CSV header
+        csvData.add("Experiment,Time Step,Class 0,Class 1");
 
-        for (int i = 0; i < n; i++) {
-            try {
-                Thread.sleep(0);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        for (int exp = 0; exp < m; exp++) {
+            Population pop = new Population(gridSize, cellSize, 3);
+            JFrame frame = null;
+            if (visualizationFlag == 1) {
+                frame = new JFrame("Evolution Simulation - Run " + (exp + 1));
+                frame.add(pop);
+                frame.pack();
+                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                frame.setLocationRelativeTo(null);
+                frame.setVisible(true);
             }
             if (i == 500) { // Make 1 become mutator at the 500th timestep
                 pop.makeMutator(1);
@@ -392,9 +397,23 @@ public class EvolutionSimulation {
 
             // Store data in list for CSV
             csvData.add(i + "," + counts[0] + "," + counts[1]);
+
+            int n = 20000;
+            
+            for (int i = 0; i < n; i++) {
+                try {
+                    Thread.sleep(0);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                pop.updateGrid();
+                
+                int[] counts = pop.countIndividuals();
+                System.out.println("Experiment " + (exp + 1) + " - Time step " + i + ": Class 0 = " + counts[0] + ", Class 1 = " + counts[1]);
+                csvData.add((exp + 1) + "," + i + "," + counts[0] + "," + counts[1]);
+            }
         }
 
-        // Save results to CSV
         saveToCSV("./class_counts.csv", csvData);
     }
 
@@ -409,4 +428,6 @@ public class EvolutionSimulation {
         }
     }
 }
+
+
 
