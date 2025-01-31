@@ -298,6 +298,25 @@ class Population extends JPanel {
         }
     }
 
+    /**
+     * Shrink the population by 50%
+     * @param individualType
+     */
+    public void makeCatastrophy(int individualType) {
+        int deathCounter = 0;
+        int deathTarget = 200;
+        for (int i=0; i < gridSize; i++) {
+            for (int j = 0; j < gridSize; j++) {
+                Individual individual = grid[i][j]; // reference
+                if (deathCounter < deathTarget && individualType == individual.getType()) {
+                    individual.setType(1 - individualType);
+                    individual.setMu(individual.mu_type0); // Make 1 die, 0 takes its place
+                    deathCounter++;
+                }
+            }
+        }
+    }
+
     public int[] countIndividuals() {
         int countClass0 = 0;
         int countClass1 = 0;
