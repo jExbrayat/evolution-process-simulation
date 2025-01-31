@@ -87,7 +87,7 @@ class EvolutionaryMaths {
         // Init Random object for generating gaussian variables
         Random rand = new Random();
         double epsilon = rand.nextGaussian();
-        double reprod_proba = Math.exp(alpha * (0.5+fitness)*(0.5+fitness)*(0.5+fitness)*(0.5+fitness)*(0.5+fitness)*(0.5+fitness)) + beta * age + stochasticity_std * epsilon;
+        double reprod_proba = Math.exp(alpha * (0.5+fitness)) + stochasticity_std * epsilon;
         return reprod_proba;
     }
 
@@ -121,7 +121,8 @@ class Individual {
 
         if(type == 0){
             this.color = new Color(0, 0, 147);
-            this.mu = 0;
+            
+            this.mu = 0.01;
             for(int i = 0; i < traitCount;i++){
                 this.phenotype[i] = 0;
             }
@@ -130,7 +131,7 @@ class Individual {
             this.color = new Color(147, 147, 0);
             this.mu = 0;
             for(int i = 0; i < traitCount;i++){
-                this.phenotype[i] = 0.5;
+                this.phenotype[i] = 0;
             }
         }
     }
@@ -290,41 +291,53 @@ class Population extends JPanel {
 }
 
 //
+
 public class EvolutionSimulation {
     public static void main(String[] args) {
-        int gridSize = 20; 
+        if (args.length < 2) {
+            System.out.println("Usage: java EvolutionSimulation <visualization_flag (0 or 1)> <m>");
+            return;
+        }
+        
+
+        double mu_type1 = 0.08;
+        int visualizationFlag = Integer.parseInt(args[0]);
+        int m = Integer.parseInt(args[1]);
+        int gridSize = 20;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int cellSize = Math.min(screenSize.width, screenSize.height) / gridSize; 
+        int cellSize = Math.min(screenSize.width, screenSize.height) / gridSize;
 
-        JFrame frame = new JFrame("Evolution Simulation");
-        Population pop = new Population(gridSize, cellSize, 3);
-
-        frame.add(pop);
-        frame.pack();
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
-
-        int n = 2000;
         List<String> csvData = new ArrayList<>();
-        csvData.add("Time Step,Class 0,Class 1");  // CSV header
+        csvData.add("Experiment,Time Step,Class 0,Class 1");
 
-        for (int i = 0; i < n; i++) {
-            try {
-                Thread.sleep(0);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        for (int exp = 0; exp < m; exp++) {
+            Population pop = new Population(gridSize, cellSize, 3);
+            JFrame frame = null;
+            if (visualizationFlag == 1) {
+                frame = new JFrame("Evolution Simulation - Run " + (exp + 1));
+                frame.add(pop);
+                frame.pack();
+                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                frame.setLocationRelativeTo(null);
+                frame.setVisible(true);
             }
-            pop.updateGrid();
 
-            int[] counts = pop.countIndividuals();
-            System.out.println("Time step " + i + ": Class 0 = " + counts[0] + ", Class 1 = " + counts[1]);
-
-            // Store data in list for CSV
-            csvData.add(i + "," + counts[0] + "," + counts[1]);
+            int n = 20000;
+            
+            for (int i = 0; i < n; i++) {
+                try {
+                    Thread.sleep(0);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                pop.updateGrid();
+                
+                int[] counts = pop.countIndividuals();
+                System.out.println("Experiment " + (exp + 1) + " - Time step " + i + ": Class 0 = " + counts[0] + ", Class 1 = " + counts[1]);
+                csvData.add((exp + 1) + "," + i + "," + counts[0] + "," + counts[1]);
+            }
         }
 
-        // Save results to CSV
         saveToCSV("./class_counts.csv", csvData);
     }
 
@@ -339,4 +352,6 @@ public class EvolutionSimulation {
         }
     }
 }
+
+
 

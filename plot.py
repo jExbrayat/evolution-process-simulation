@@ -1,22 +1,27 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Charger les données CSV
+# Load CSV data
 file_path = "class_counts.csv"
 df = pd.read_csv(file_path)
 
-# Création du graphique
-plt.figure(figsize=(10, 5))
-plt.plot(df["Time Step"], df["Class 0"], label="Class 0 (Bleu)", color="blue")
-plt.plot(df["Time Step"], df["Class 1"], label="Class 1 (Jaune)", color="gold")
+# Get unique experiments
+experiments = df["Experiment"].unique()
 
-# Personnalisation
+# Create the plot
+plt.figure(figsize=(10, 5))
+
+for exp in experiments:
+    exp_data = df[df["Experiment"] == exp]
+    ratio = exp_data["Class 0"] / (exp_data["Class 1"] + 1e-6)  # Avoid division by zero
+    plt.plot(exp_data["Time Step"], ratio, label=f"Class 0 / Class 1 - Exp {exp}", linestyle="solid", alpha=0.7, color="purple")
+
+# Customization
 plt.xlabel("Time Step")
-plt.ylabel("Nombre d'individus")
-plt.title("Évolution des Classes dans la Simulation")
-plt.legend()
+plt.ylabel("Ratio Class 0 / Class 1")
+plt.title("Evolution of Class Ratios Over Multiple Experiments")
 plt.grid(True)
 
-# Sauvegarde et affichage
+# Save and show plot
 plt.savefig("evolution_plot.png", dpi=300)
 plt.show()
