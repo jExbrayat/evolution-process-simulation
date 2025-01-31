@@ -13,14 +13,15 @@ plt.figure(figsize=(10, 5))
 
 for exp in experiments:
     exp_data = df[df["Experiment"] == exp]
-    ratio = exp_data["Class 0"] / (exp_data["Class 1"] + 1e-6)  # Avoid division by zero
-    plt.plot(exp_data["Time Step"], ratio, label=f"Class 0 / Class 1 - Exp {exp}", linestyle="solid", alpha=0.7, color="purple")
+    plt.plot(exp_data["Time Step"], exp_data["Class 0"], linestyle="solid", alpha=0.7, color="blue")
+    plt.plot(exp_data["Time Step"], exp_data["Class 1"], linestyle="solid", alpha=0.7, color="gold")
 
 # Customization
 plt.xlabel("Time Step")
-plt.ylabel("Ratio Class 0 / Class 1")
-plt.title("Evolution of Class Ratios Over Multiple Experiments")
-plt.grid(True)
+plt.ylabel("Number of Individuals")
+plt.title("Evolution of Classes Over Multiple Experiments")
+plt.legend(["Type 0", "Type 1"], title="Legend")
+plt.grid(True, color="gray")
 
 # Save and show plot
 plt.savefig("evolution_plot.png", dpi=300)
