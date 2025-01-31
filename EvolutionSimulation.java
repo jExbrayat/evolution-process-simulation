@@ -74,7 +74,8 @@ class EvolutionaryMaths {
         Random rand = new Random();
         for (int i = 0; i < genotype.length; i++) {
             genotype[i] += rand.nextGaussian() * mutation_rate;
-            genotype[i] = Math.max(0, Math.min(1, genotype[i]));
+            genotype[i]  = Math.max(0, Math.min(1, genotype[i]));
+            
         }
         return genotype;
     }
@@ -143,8 +144,8 @@ class Individual {
     private double mu;
     public Color type0_color = new Color(0, 0, 147);
     public Color type1_color = new Color(147, 147, 0);
-    private double mu_type0 = 0.001;
-    private double mu_type1 = 0.0005;
+    private double mu_type0 = 10E-5;
+    private double mu_type1 = 10E-5;
     
 
 
@@ -170,7 +171,7 @@ class Individual {
             this.color = type1_color;
             this.mu = mu_type1;
             for (int i = 0; i < traitCount; i++) {
-                this.phenotype[i] = 0.1;
+                this.phenotype[i] = 0;
             }
         }
     }
@@ -242,10 +243,15 @@ class Population extends JPanel {
     }
 
     private void initializeGrid(int traitCount) {
+        // Make pop 0 undernumbered
+        int target_nb0 = (int) Math.floor(gridSize * gridSize * 0.5);
+        int count0 = 0; // Count the # of 0 
+        
         for (int i = 0; i < gridSize; i++) {
             for (int j = 0; j < gridSize; j++) {
-                if (i % 2 == 0) {
+                if (count0 < target_nb0) {
                     grid[i][j] = new Individual(traitCount, 0);
+                    count0++;
                 } else {
                     grid[i][j] = new Individual(traitCount, 1);
                 }
@@ -274,7 +280,6 @@ class Population extends JPanel {
             for (int j = 0; j < gridSize; j++) {
                 Individual individual = grid[i][j]; // reference
                 if (individual.getType() == individualType) {
-                    int mu_increasing_factor = 5;
                     individual.becomeMutator(5);
                 } 
             }
@@ -287,7 +292,6 @@ class Population extends JPanel {
             for (int j = 0; j < gridSize; j++) {
                 Individual individual = grid[i][j]; // reference
                 if (individual.getType() == individualType) {
-                    int mu_increasing_factor = 5;
                     individual.reverseMutator(5);
                 }
             }
