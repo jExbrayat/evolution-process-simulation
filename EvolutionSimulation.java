@@ -73,7 +73,8 @@ class EvolutionaryMaths {
         // Init Random object for generating gaussian variables
         Random rand = new Random();
         for (int i = 0; i < genotype.length; i++) {
-            genotype[i] += rand.nextGaussian() * mutation_rate; ////////////// TODO : Thresholding
+            genotype[i] += rand.nextGaussian() * mutation_rate;
+            genotype[i] = Math.max(0, Math.min(1, genotype[i]));
         }
         return genotype;
     }
@@ -106,7 +107,7 @@ class EvolutionaryMaths {
         // Init Random object for generating gaussian variables
         Random rand = new Random();
         double epsilon = rand.nextGaussian();
-        double reprod_proba = Math.exp(alpha * fitness + beta * age + stochasticity_std * epsilon);
+        double reprod_proba = Math.exp(2 * fitness);
         return reprod_proba;
     }
 
@@ -142,8 +143,8 @@ class Individual {
     private double mu;
     public Color type0_color = new Color(0, 0, 147);
     public Color type1_color = new Color(147, 147, 0);
-    private double mu_type0 = 0.1;
-    private double mu_type1 = 0.1;
+    private double mu_type0 = 0.001;
+    private double mu_type1 = 0.0005;
     
 
 
@@ -169,7 +170,7 @@ class Individual {
             this.color = type1_color;
             this.mu = mu_type1;
             for (int i = 0; i < traitCount; i++) {
-                this.phenotype[i] = 0.5;
+                this.phenotype[i] = 0.1;
             }
         }
     }
@@ -354,6 +355,27 @@ class Population extends JPanel {
         grid[i_death][j_death].setMu(grid[i_born][j_born].getMu());
         repaint(); // Repaint the panel to reflect updates
     }
+
+    public double[] computeAverageFitness() {
+        double totalFitnessClass0 = 0, totalFitnessClass1 = 0;
+        int countClass0 = 0, countClass1 = 0;
+        
+        for (int i = 0; i < gridSize; i++) {
+            for (int j = 0; j < gridSize; j++) {
+                if (grid[i][j].getType() == 0) {
+                    totalFitnessClass0 += grid[i][j].getFitness();
+                    countClass0++;
+                } else {
+                    totalFitnessClass1 += grid[i][j].getFitness();
+                    countClass1++;
+                }
+            }
+        }
+        double avgFitness0 = countClass0 > 0 ? totalFitnessClass0 / countClass0 : 0;
+        double avgFitness1 = countClass1 > 0 ? totalFitnessClass1 / countClass1 : 0;
+        
+        return new double[]{avgFitness0, avgFitness1};
+    }
 }
 
 //
@@ -365,7 +387,6 @@ public class EvolutionSimulation {
             return;
         }
         
-
         int visualizationFlag = Integer.parseInt(args[0]);
         int m = Integer.parseInt(args[1]);
         int gridSize = 20;
@@ -373,7 +394,7 @@ public class EvolutionSimulation {
         int cellSize = Math.min(screenSize.width, screenSize.height) / gridSize;
 
         List<String> csvData = new ArrayList<>();
-        csvData.add("Experiment,Time Step,Class 0,Class 1");
+        csvData.add("Experiment,Time Step,Class 0,Class 1,Avg Fitness Class 0,Avg Fitness Class 1");
 
         for (int exp = 0; exp < m; exp++) {
             Population pop = new Population(gridSize, cellSize, 3);
@@ -387,7 +408,7 @@ public class EvolutionSimulation {
                 frame.setVisible(true);
             }
 
-            int n = 20000;
+            int n = 7000;
             
             for (int i = 0; i < n; i++) {
                 try {
@@ -397,13 +418,11 @@ public class EvolutionSimulation {
                 }
                 pop.updateGrid();
                 
-                if (i == 5000) { // Make 1 become mutator at the 500th timestep
-                    pop.makeMutator(0);
-                }
-                
                 int[] counts = pop.countIndividuals();
-                System.out.println("Experiment " + (exp + 1) + " - Time step " + i + ": Class 0 = " + counts[0] + ", Class 1 = " + counts[1]);
-                csvData.add((exp + 1) + "," + i + "," + counts[0] + "," + counts[1]);
+                double[] avgFitness = pop.computeAverageFitness();
+                
+                // System.out.println("Experiment " + (exp + 1) + " - Time step " + i + ": Class 0 = " + counts[0] + ", Class 1 = " + counts[1] + ", Avg Fitness Class 0 = " + avgFitness[0] + ", Avg Fitness Class 1 = " + avgFitness[1]);
+                csvData.add((exp + 1) + "," + i + "," + counts[0] + "," + counts[1] + "," + avgFitness[0] + "," + avgFitness[1]);
             }
         }
 
@@ -421,6 +440,7 @@ public class EvolutionSimulation {
         }
     }
 }
+
 
 
 
